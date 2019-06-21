@@ -150,7 +150,7 @@ namespace MailLib.BaseClasses {
 					throw new ArgumentNullException("MailAdress.Host is null or empty");
 
 				var request = new HttpRequestMessage(HttpMethod.Get, $"http://www.jmail.ovh/welcome.php?at=@{MailAdress.Host}");
-				var x = client.SendAsync(request).Result.EnsureSuccessStatusCode();
+				client.SendAsync(request).Result.EnsureSuccessStatusCode();
 
 			}
 			catch (Exception ex) { throw new HttpRequestException("setMailDomain", ex); }
@@ -162,7 +162,7 @@ namespace MailLib.BaseClasses {
 			try {
 
 				var request = new HttpRequestMessage(HttpMethod.Get, $"http://www.jmail.ovh/cl.php?l=pl");
-				var x = client.SendAsync(request).Result.EnsureSuccessStatusCode();
+				client.SendAsync(request).Result.EnsureSuccessStatusCode();
 
 			}
 			catch (Exception ex) { throw new HttpRequestException("setPolishLanguage", ex); }
