@@ -36,7 +36,7 @@ namespace MailLib.BaseClasses {
 		public void SetMail(int length = 20) {
 
 			if (length < 1 || length > 20)
-				throw new MailBadLengthOrFormat();
+				throw new MailInvalidLengthOrFormat();
 
 			MailAdress = new MailAddress($"{RandomPart.GenerateString(length)}@{Domain}");
 
@@ -52,7 +52,7 @@ namespace MailLib.BaseClasses {
 		public void SetMail(Ovh[] oldMails, int length = 16) {
 
 			if (length < 1 || length > 20)
-				throw new MailBadLengthOrFormat();
+				throw new MailInvalidLengthOrFormat();
 
 			string buf = RandomPart.GenerateString(length);
 
@@ -73,7 +73,7 @@ namespace MailLib.BaseClasses {
 		public void SetMail(string customMail) {
 
 			if (!Regex.IsMatch(customMail, @"^[a-zA-Z0-9]{1,20}$"))
-				throw new MailBadLengthOrFormat();
+				throw new MailInvalidLengthOrFormat();
 
 			MailAdress = new MailAddress($"{customMail}@{Domain}");
 
@@ -87,21 +87,13 @@ namespace MailLib.BaseClasses {
 		public void UpdateInbox() {
 
 			var responseString = "";
-
 			MatchCollection matches;
 
 			try {
 
 				var request = new HttpRequestMessage(HttpMethod.Post, "http://www.jmail.ovh/mailBoxListAjax.php");
-
-				var x = client.SendAsync(request).Result;
-
-				if (!x.IsSuccessStatusCode)
-					throw new HttpRequestException("x.IsSuccessStatusCode = false");
-
-				responseString = x.Content.ReadAsStringAsync().Result;
-
-				x?.Dispose();
+				var response = client.SendAsync(request).Result.EnsureSuccessStatusCode();
+				responseString = response.Content.ReadAsStringAsync().Result;
 
 				if (string.IsNullOrEmpty(responseString))
 					throw new ArgumentNullException("responseString is null or empty");
@@ -118,20 +110,13 @@ namespace MailLib.BaseClasses {
 
 			Mails = new List<Mail>();
 
-			foreach (Match match in matches) {
-
-				var id = 0;
-
+			foreach (Match match in matches) 
 				try {
-					id = Convert.ToInt32(match.Groups["Id"].Value);
+					var id = Convert.ToInt32(match.Groups["Id"].Value);
+					Mails.Add(getMailDetails(id));
 				}
 				catch (Exception ex) { throw new ParsingException("UpdateInbox", ex); }
-
-				Mails.Add(getMailDetails(id));
-
-			}
-
-
+				
 		}
 
 
@@ -141,7 +126,6 @@ namespace MailLib.BaseClasses {
 			client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
 
 			setMailDomain();
-
 			setPolishLanguage();
 			
 			try {
@@ -150,15 +134,8 @@ namespace MailLib.BaseClasses {
 					throw new ArgumentNullException("MailAdress.User is null or empty");
 
 				var request = new HttpRequestMessage(HttpMethod.Post, "http://www.jmail.ovh/mailBox.php");
-
 				request.Content = new StringContent($"mailBox={MailAdress.User}", Encoding.UTF8, "application/x-www-form-urlencoded");
-
-				var x = client.SendAsync(request).Result;
-
-				if (!x.IsSuccessStatusCode)
-					throw new HttpRequestException("x.IsSuccessStatusCode = false");
-
-				x?.Dispose();
+				client.SendAsync(request).Result.EnsureSuccessStatusCode();
 
 			}
 			catch (Exception ex) { throw new HttpRequestException("setMailBase", ex); }
@@ -173,13 +150,7 @@ namespace MailLib.BaseClasses {
 					throw new ArgumentNullException("MailAdress.Host is null or empty");
 
 				var request = new HttpRequestMessage(HttpMethod.Get, $"http://www.jmail.ovh/welcome.php?at=@{MailAdress.Host}");
-
-				var x = client.SendAsync(request).Result;
-
-				if (!x.IsSuccessStatusCode)
-					throw new HttpRequestException("x.IsSuccessStatusCode = false");
-
-				x?.Dispose();
+				var x = client.SendAsync(request).Result.EnsureSuccessStatusCode();
 
 			}
 			catch (Exception ex) { throw new HttpRequestException("setMailDomain", ex); }
@@ -191,13 +162,7 @@ namespace MailLib.BaseClasses {
 			try {
 
 				var request = new HttpRequestMessage(HttpMethod.Get, $"http://www.jmail.ovh/cl.php?l=pl");
-
-				var x = client.SendAsync(request).Result;
-
-				if (!x.IsSuccessStatusCode)
-					throw new HttpRequestException("x.IsSuccessStatusCode = false");
-
-				x?.Dispose();
+				var x = client.SendAsync(request).Result.EnsureSuccessStatusCode();
 
 			}
 			catch (Exception ex) { throw new HttpRequestException("setPolishLanguage", ex); }
@@ -207,21 +172,13 @@ namespace MailLib.BaseClasses {
 		private Mail getMailDetails(int id) {
 
 			var responseString = "";
-
 			Match match;
 
 			try {
 
 				var request = new HttpRequestMessage(HttpMethod.Get, "http://www.jmail.ovh/loadMailDetailsAjax.php?mailId=" + id.ToString());
-
-				var x = client.SendAsync(request).Result;
-
-				if (!x.IsSuccessStatusCode)
-					throw new HttpRequestException("x.IsSuccessStatusCode = false");
-
-				responseString = x.Content.ReadAsStringAsync().Result;
-
-				x?.Dispose();
+				var response = client.SendAsync(request).Result.EnsureSuccessStatusCode();
+				responseString = response.Content.ReadAsStringAsync().Result;
 
 				if (string.IsNullOrEmpty(responseString))
 					throw new ArgumentNullException("responseString is null or empty");
@@ -285,11 +242,7 @@ namespace MailLib.BaseClasses {
 			try {
 
 				var request = new HttpRequestMessage(HttpMethod.Post, "http://www.jmail.ovh/deleteMailAjax.php?mailId=" + id);
-
-				var x = client.SendAsync(request).Result;
-
-				if (!x.IsSuccessStatusCode)
-					throw new HttpRequestException("x.IsSuccessStatusCode = false");
+				client.SendAsync(request).Result.EnsureSuccessStatusCode();
 
 			}
 			catch (Exception ex) { throw new HttpRequestException("DeleteMail", ex); }
@@ -303,25 +256,11 @@ namespace MailLib.BaseClasses {
 			try {
 
 				var request = new HttpRequestMessage(HttpMethod.Get, "http://www.jmail.ovh/loadMailDetailsAjax.php?mailId=" + id);
-
-				var x = client.SendAsync(request).Result;
-
-				if (!x.IsSuccessStatusCode)
-					throw new HttpRequestException("x.IsSuccessStatusCode = false");
-
-				x?.Dispose();
-
-
+				var response = client.SendAsync(request).Result;
+				
 				request = new HttpRequestMessage(HttpMethod.Get, "http://www.jmail.ovh/mailBody.php?mail=" + id);
-
-				var y = client.SendAsync(request).Result;
-
-				if (!y.IsSuccessStatusCode)
-					throw new HttpRequestException("y.IsSuccessStatusCode = false");
-
-				responseString = y.Content.ReadAsStringAsync().Result;
-
-				y?.Dispose();
+				response = client.SendAsync(request).Result.EnsureSuccessStatusCode();
+				responseString = response.Content.ReadAsStringAsync().Result;
 
 				if (string.IsNullOrEmpty(responseString))
 					throw new ArgumentNullException("responseString is null or empty");

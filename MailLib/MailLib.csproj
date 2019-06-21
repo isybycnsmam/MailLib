@@ -42,7 +42,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseClasses\Account.cs" />
-    <Compile Include="BaseClasses\AnyMail.cs" />
     <Compile Include="BaseClasses\DelegateDefinition.cs" />
     <Compile Include="BaseClasses\Ovh.cs" />
     <Compile Include="BaseClasses\RandomPart.cs" />

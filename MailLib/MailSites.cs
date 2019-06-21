@@ -13,9 +13,5 @@ namespace MailLib {
 
 		public sealed class Uu2Ovh : BaseClasses.Ovh { public Uu2Ovh() : base(BaseClasses.Ovh.DomainName.Uu2) { } }
 
-		//public sealed class AnyMail : BaseClasses.AnyMail { public AnyMail(string mail, string password, ConnectionType type) : base(mail, password, type) { } }
-
-		//public sealed class PocztaO2Pl : BaseClasses.AnyMail { public PocztaO2Pl(string mail, string password, ConnectionType type) : base(mail, password, type) { } }
-
 	}
 }
